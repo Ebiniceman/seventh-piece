@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The Seventh Piece is an experimental open-source chess variant exploring activation, strategic reversals, sacrifice, and collaborative design.">
+<title>The Seventh Piece — An Open Chess Experiment</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --site-primary: #b7f36b;
+  --site-secondary: #202b25;
+  --site-background: #101511;
+  --site-on-primary: #10170b;
+  --site-on-secondary: #f2f7ef;
+  --site-on-background: #f2f5ef;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  --surface: light-dark(#ffffff, #171d18);
+  --surface-2: light-dark(#f1f5ed, #202922);
+  --text: light-dark(#172018, #f2f5ef);
+  --muted: light-dark(#5c695e, #b1bdb1);
+  --border: light-dark(#d9e2d5, #344137);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--site-background); color: var(--site-on-background); }
+.root { min-height: 100vh; background-color: var(--site-background); color: var(--site-on-background); overflow: hidden; }
+a { color: inherit; }
+.wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 24px 0; }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.03em; }
+.mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: var(--site-primary); color: var(--site-on-primary); font-size: 23px; }
+nav { display: flex; flex-wrap: wrap; gap: 22px; font-size: 14px; color: var(--site-on-background); opacity: .86; }
+nav a { text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+.hero { padding: calc(82px * var(--site-spacing-scale)) 0 calc(76px * var(--site-spacing-scale)); display: grid; grid-template-columns: 1.2fr .8fr; gap: 48px; align-items: center; }
+.eyebrow { color: var(--site-primary); text-transform: uppercase; letter-spacing: .16em; font-size: 12px; font-weight: 800; }
+h1 { font-family: var(--site-font-heading); font-size: clamp(44px, 6.6vw, calc(76px * var(--site-heading-scale))); line-height: .99; letter-spacing: -.065em; margin: 18px 0 24px; max-width: 720px; }
+.lead { color: #c5d0c5; font-size: clamp(17px, 2vw, 20px); line-height: 1.7; max-width: 650px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: calc(12px * var(--site-radius-scale)); text-decoration: none; font-weight: 750; font-size: 14px; border: 1px solid transparent; }
+.btn-primary { background: var(--site-primary); color: var(--site-on-primary); }
+.btn-secondary { border-color: #526052; color: #f3f7f0; }
+.btn:hover { transform: translateY(-1px); }
+.board-card { padding: 22px; background: #202a22; border: 1px solid #39483a; border-radius: calc(24px * var(--site-radius-scale)); box-shadow: 0 24px 70px #0004; transform: rotate(2deg); }
+.board { display: grid; grid-template-columns: repeat(6, 1fr); aspect-ratio: 1; border: 5px solid #111811; border-radius: 8px; overflow: hidden; }
+.sq { display: grid; place-items: center; font-size: clamp(22px, 4vw, 42px); }
+.sq:nth-child(12n+1), .sq:nth-child(12n+3), .sq:nth-child(12n+5), .sq:nth-child(12n+8), .sq:nth-child(12n+10), .sq:nth-child(12n+12) { background: #dce7d3; color: #1a2619; }
+.sq:nth-child(12n+2), .sq:nth-child(12n+4), .sq:nth-child(12n+6), .sq:nth-child(12n+7), .sq:nth-child(12n+9), .sq:nth-child(12n+11) { background: #50664f; color: #f4f7ef; }
+.sq.special { background: var(--site-primary) !important; color: #14200d !important; font-weight: 900; }
+.caption { font-size: 12px; color: #aeb9ad; text-align: center; margin-top: 14px; }
+section { padding: 70px 0; }
+.section-head { max-width: 720px; margin-bottom: 30px; }
+.kicker { color: light-dark(#4d742a, #b7f36b); text-transform: uppercase; letter-spacing: .14em; font-size: 11px; font-weight: 850; }
+h2 { font-size: clamp(30px, 4vw, calc(44px * var(--site-heading-scale))); letter-spacing: -.045em; line-height: 1.08; margin: 12px 0 16px; }
+.section-head p, .card p, .rule p { color: var(--muted); line-height: 1.7; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: calc(18px * var(--site-radius-scale)); padding: 24px; }
+.icon { display: grid; place-items: center; width: 42px; height: 42px; background: var(--surface-2); border-radius: 12px; font-size: 21px; }
+.card h3 { margin: 18px 0 8px; font-size: 18px; }
+.rules { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rule { padding: 22px; border: 1px solid var(--border); border-radius: calc(16px * var(--site-radius-scale)); background: var(--surface); color: var(--text); }
+.rule strong { display: block; margin-bottom: 8px; }
+.rule p { margin: 0; font-size: 14px; }
+.notice { border-left: 3px solid var(--site-primary); background: var(--surface-2); color: var(--text); padding: 18px 20px; border-radius: 0 12px 12px 0; line-height: 1.65; margin-top: 22px; }
+.cta { background: var(--site-secondary); border: 1px solid #3b4a3b; padding: 34px; border-radius: calc(24px * var(--site-radius-scale)); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.cta h2 { margin-top: 0; }
+.cta p { color: #c0ccc0; line-height: 1.65; max-width: 620px; }
+footer { border-top: 1px solid #303b31; padding: 28px 0 36px; color: #aeb9ad; font-size: 12px; line-height: 1.7; }
+.footer-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.small-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.small-links a { color: var(--site-primary); }
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; padding-top: 50px; gap: 28px; } .board-card { max-width: 420px; margin: auto; transform: none; } .grid3, .rules { grid-template-columns: 1fr; } .cta { align-items: flex-start; flex-direction: column; } nav { gap: 12px; } header { align-items: flex-start; flex-direction: column; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="root">
+  <div class="wrap">
+    <header>
+      <div class="brand"><div class="mark">VII</div><span>THE SEVENTH PIECE</span></div>
+      <nav aria-label="Main navigation"><a href="#concept">Concept</a><a href="#rules">Prototype rules</a><a href="#status">Project status</a></nav>
+    </header>
+    <main>
+      <section class="hero" id="concept">
+        <div>
+          <div class="eyebrow">An open-source chess experiment</div>
+          <h1>A new piece.<br>A different game.</h1>
+          <p class="lead">The Seventh Piece is an experimental chess variant built around a special piece that begins inactive and enters play only when a key condition is met. It explores strategic reversals, sacrifice, and the choices that emerge when familiar rules change.</p>
+          <div class="actions"><a class="btn btn-primary" href="play.html">Try the mobile prototype ↗</a><a class="btn btn-secondary" href="#rules">Explore the rules</a></div>
+        </div>
+        <div class="board-card" aria-label="Illustrative chessboard featuring the Seventh Piece">
+          <div class="board">
+            <div class="sq">♜</div><div class="sq">♞</div><div class="sq">♝</div><div class="sq">♛</div><div class="sq">♚</div><div class="sq">♝</div>
+            <div class="sq">♟</div><div class="sq">♟</div><div class="sq">♟</div><div class="sq">♟</div><div class="sq">♟</div><div class="sq">♟</div>
+            <div class="sq"></div><div class="sq"></div><div class="sq">↗</div><div class="sq special">VII</div><div class="sq"></div><div class="sq"></div>
+            <div class="sq"></div><div class="sq"></div><div class="sq"></div><div class="sq"></div><div class="sq"></div><div class="sq"></div>
+            <div class="sq">♙</div><div class="sq">♙</div><div class="sq">♙</div><div class="sq">♙</div><div class="sq">♙</div><div class="sq">♙</div>
+            <div class="sq">♖</div><div class="sq">♘</div><div class="sq">♗</div><div class="sq">♕</div><div class="sq">♔</div><div class="sq">♗</div>
+          </div>
+          <div class="caption">Concept illustration · not a standard chess position</div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <section style="background:var(--surface-2); color:var(--text);" id="idea">
+    <div class="wrap">
+      <div class="section-head"><div class="kicker">The idea</div><h2>Rules that create new questions.</h2><p>What if a piece could enter only after the board changes? What if a limited reversal could alter how players value risk? The project is a work in progress, designed to invite testing, debate, and improvement rather than claim a finished rule system.</p></div>
+      <div class="grid3">
+        <article class="card"><div class="icon">♟</div><h3>Conditional activation</h3><p>The Seventh Piece starts inactive. In the current prototype, it appears when the king or queen leaves its original square.</p></article>
+        <article class="card"><div class="icon">↶</div><h3>Strategic reversal</h3><p>The proposed rules include limited move reversals for specific high-threat situations. The full special-condition logic is not yet implemented.</p></article>
+        <article class="card"><div class="icon">◇</div><h3>Open collaboration</h3><p>The project is intended to be explored in the open: test the mechanics, find edge cases, and suggest clearer, fairer rules.</p></article>
+      </div>
+    </div>
+  </section>
+  <section id="rules">
+    <div class="wrap">
+      <div class="section-head"><div class="kicker">Prototype rules</div><h2>What is proposed—and what works today.</h2><p>The design is still experimental. These notes distinguish the creator’s proposed mechanics from the simplified implementation in the current browser demo.</p></div>
+      <div class="rules">
+        <div class="rule"><strong>01 · Entry condition</strong><p>Proposed: the piece is inactive until the king or queen vacates its original square. The current demo uses that condition to place the piece on the vacated square.</p></div>
+        <div class="rule"><strong>02 · Diagonal movement</strong><p>Proposed and prototyped: the Seventh Piece can move one square diagonally in any direction, subject to the demo’s simplified move logic.</p></div>
+        <div class="rule"><strong>03 · Limited reversals</strong><p>Proposed: up to three reversals for a move threatening two rooks, plus one reversal for a queen-threat move. These special limits and threat checks are not yet implemented.</p></div>
+        <div class="rule"><strong>04 · Further edge cases</strong><p>Other proposed interactions include conditions involving knights, bishops, pawns, checks, and the loss of a queen. They need formal specification and testing before they can be treated as implemented rules.</p></div>
+      </div>
+      <div class="notice"><strong>Prototype limitation:</strong> The current demo is not a complete chess engine. It does not yet enforce check/checkmate, castling, en passant, or full king-safety legality. Its undo control is a generic last-move undo, not the special reversal system described above.</div>
+    </div>
+  </section>
+  <section id="status" style="background:var(--surface-2); color:var(--text);">
+    <div class="wrap">
+      <div class="cta">
+        <div><div class="kicker">Current status · Experimental v0.1</div><h2>Play it. Question it. Help shape it.</h2><p>A small, mobile-friendly browser prototype is included with this package. It runs locally and does not require an account or network connection. Feedback from chess players and developers is welcome.</p></div>
+        <div class="actions" style="margin-top:0; flex-shrink:0;"><a class="btn btn-primary" href="play.html">Launch prototype ↗</a><a class="btn btn-secondary" href="README_FA.md">Project notes</a></div>
+      </div>
+    </div>
+  </section>
+  <footer><div class="wrap"><div class="footer-row"><span>THE SEVENTH PIECE · Reminder key: <strong>11:11.%+*</strong></span><span>Independent community project · Not affiliated with any company or public figure</span></div><p>This page describes an independent experimental project. The prototype and rules are provided for evaluation; licensing and contribution terms should be confirmed in the accompanying project files before redistribution.</p><div class="small-links"><a href="play.html">Play demo</a><a href="README_FA.md">Read project notes</a></div></div></footer>
+</div>
+</body>
+</html>
